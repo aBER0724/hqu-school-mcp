@@ -79,6 +79,5 @@ SENDS_API_TOKEN=your_sends_api_token
 |---|---|
 |`get_teaching_week`|![教学周](img/TeachingWeek.png)|
 |`get_student_schedule`|![课表](img/Schedule.png)|
-|`get_student_schedule`|![课表](img/Schedule.png)|
 |`get_empty_classroom_count` <bl /> `get_empty_classroom_status`|![课表](img/EmptyClassroom.png)|
 |`get_student_credit` <bl /> `get_student_grade`|![课表](img/CreditGrade.png)|

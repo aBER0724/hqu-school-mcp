@@ -80,6 +80,5 @@ Add this configuration to Claude desktop app's config file:
 |---|---|
 |`get_teaching_week`|![Teaching Week](img/TeachingWeek.png)|
 |`get_student_schedule`|![Schedule](img/Schedule.png)|
-|`get_student_schedule`|![Schedule](img/Schedule.png)|
 |`get_empty_classroom_count` <br/> `get_empty_classroom_status`|![Classroom](img/EmptyClassroom.png)|
 |`get_student_credit` <br/> `get_student_grade`|![Credits](img/CreditGrade.png)|
