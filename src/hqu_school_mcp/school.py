@@ -20,19 +20,45 @@ class SchoolInfoService:
     BASE_URL = "https://apps.hqu.edu.cn"
 
     def __init__(self):
+        """
+        初始化SchoolInfoService实例
+        
+        创建异步HTTP客户端，并设置初始学年和学期信息
+        """
         self.client = httpx.AsyncClient()
         self.current_school_year = self._get_current_semester()[0]
         self.current_semester = self._get_current_semester()[1]
         self._jwt_token = None
 
     async def __aenter__(self):
+        """
+        异步上下文管理器入口方法
+        
+        Returns:
+            SchoolInfoService: 当前服务实例
+        """
         return self
 
     async def __aexit__(self, exc_type, exc_val, exc_tb):
+        """
+        异步上下文管理器退出方法，关闭异步HTTP客户端
+        
+        Args:
+            exc_type: 异常类型
+            exc_val: 异常值
+            exc_tb: 异常回溯
+        """
         await self.client.aclose()
 
     def _get_current_semester(self) -> tuple:
-        """计算当前学期，返回(学年, 学期)元组"""
+        """
+        计算当前学期
+        
+        基于当前日期计算当前学年和学期
+        
+        Returns:
+            tuple[str, str]: 包含(学年, 学期)的元组，如("2023-2024", "一")
+        """
         now = datetime.now()
         current_year = now.year
         current_month = now.month
@@ -55,11 +81,16 @@ class SchoolInfoService:
         """
         获取或刷新JWT令牌
         
+        通过微信OpenID获取访问学校API所需的JWT令牌
+        
         Args:
-            refresh: 是否强制刷新令牌
-
+            refresh (bool): 是否强制刷新令牌，默认为False
+            
         Returns:
             str: JWT令牌字符串
+            
+        Raises:
+            ValueError: 当环境变量中没有OPENID或获取令牌失败时抛出
         """
         if self._jwt_token is None or refresh:
             openid = os.getenv("OPENID")
@@ -80,15 +111,17 @@ class SchoolInfoService:
         
         return self._jwt_token
 
-    def _get_headers(self, extra_headers: Dict = None) -> Dict[str, str]:
+    def _get_headers(self, extra_headers: Optional[Dict[str, str]] = None) -> Dict[str, str]:
         """
         获取请求头
         
+        生成API请求所需的标准请求头，包括内容类型和授权信息
+        
         Args:
-            extra_headers: 额外的请求头
-
+            extra_headers (Optional[Dict[str, str]]): 额外的请求头键值对，默认为None
+            
         Returns:
-            Dict[str, str]: 合并后的请求头
+            Dict[str, str]: 合并后的请求头字典
         """
         headers = {
             "Content-Type": "application/json",
@@ -106,12 +139,17 @@ class SchoolInfoService:
     async def get_empty_classroom_count(self, campus: str = "0002") -> Dict[str, Any]:
         """
         获取空教室统计信息
-
+        
+        查询指定校区的空教室数量统计信息
+        
         Args:
-            campus: 校区代码(0001: 泉州校区, 0002: 厦门校区, 0003: 龙舟池校区)，默认为厦门校区
-
+            campus (str): 校区代码，可选值为["0001": 泉州校区, "0002": 厦门校区, "0003": 龙舟池校区]，默认为"0002"(厦门校区)
+            
         Returns:
-            Dict[str, Any]: 包含空教室统计的字典, 包含建筑ID
+            Dict[str, Any]: 包含空教室统计的字典，包含建筑ID和数量信息
+            
+        Raises:
+            Exception: 当API请求失败时捕获并返回错误信息
         """
         url = f"{self.BASE_URL}/academic/schoolroom/count"
         params = {
@@ -133,15 +171,20 @@ class SchoolInfoService:
 
     async def get_empty_classroom_status(self, build_id: str, day: Optional[str] = None, campus: str = "0002") -> Dict[str, Any]:
         """
-        获取教室详细信息，包括各个时段的使用状态
-
+        获取教室详细信息
+        
+        查询特定建筑在指定日期的教室使用状态详情，包括各个时段的使用情况
+        
         Args:
-            build_id: 建筑ID，例如"0002011"代表C4楼
-            day: 日期，格式为"yyyy-MM-dd"，默认为当天
-            campus: 校区代码(0001: 泉州校区, 0002: 厦门校区, 0003: 龙舟池校区)，默认为厦门校区
-
+            build_id (str): 建筑ID，例如"0002011"代表C4楼
+            day (Optional[str]): 日期，格式为"yyyy-MM-dd"，默认为当天
+            campus (str): 校区代码，可选值为["0001": 泉州校区, "0002": 厦门校区, "0003": 龙舟池校区]，默认为"0002"(厦门校区)
+            
         Returns:
-            Dict[str, Any]: 包含教室详细信息的字典
+            Dict[str, Any]: 包含教室详细使用信息的字典
+            
+        Raises:
+            Exception: 当API请求失败时捕获并返回错误信息
         """
         url = f"{self.BASE_URL}/academic/schoolroom/analysis"
 
@@ -172,12 +215,18 @@ class SchoolInfoService:
     async def get_grade(self, school_year: Optional[str] = None, semester: Optional[str] = None) -> Dict[str, Any]:
         """
         获取课程成绩信息
-
-        Parameters:
-            school_year: 学年，可选，默认为当前学年, 2024-2025
-            semester: 学期，可选，默认为当前学期, 一 或 二
+        
+        查询指定学年和学期的课程成绩数据
+        
+        Args:
+            school_year (Optional[str]): 学年，格式如"2023-2024"，默认为当前学年
+            semester (Optional[str]): 学期，可选值为"一"(上学期)或"二"(下学期)，默认为当前学期
+            
         Returns:
             Dict[str, Any]: 包含课程成绩信息的字典
+            
+        Raises:
+            Exception: 当API请求失败时捕获并返回错误信息
         """
         try:
             jwt_token = await self._get_jwt_token()
@@ -211,9 +260,14 @@ class SchoolInfoService:
     async def get_college_list(self) -> Dict[str, Any]:
         """
         获取学院列表
-
+        
+        查询华侨大学所有学院的列表信息
+        
         Returns:
-            Dict[str, Any]: data:[{"wbwccollegenum": college_id, "nawbwccollegenameme": college_name}]
+            Dict[str, Any]: 包含学院列表的字典，格式为data:[{"wbwccollegenum": college_id, "nawbwccollegenameme": college_name}]
+            
+        Raises:
+            Exception: 当API请求失败时捕获并返回错误信息
         """
         try:
             jwt_token = await self._get_jwt_token()
@@ -233,14 +287,20 @@ class SchoolInfoService:
     async def get_class_timetable(self, class_id: str, school_year: Optional[str] = None, semester: Optional[str] = None, is_overseas: bool = False) -> Dict[str, Any]:
         """
         获取班级课表信息
-
+        
+        查询指定班级在特定学年学期的课程表信息
+        
         Args:
-            class_id: 班级ID, 例如: 2024级会展经济与管理1班
-            school_year: 学年, 例如: 2024-2025
-            semester: 上学期: 一, 下学期: 二
-            is_overseas: 是否为境外生班级
+            class_id (str): 班级ID，例如: "2024级会展经济与管理1班"
+            school_year (Optional[str]): 学年，格式如"2023-2024"，默认为当前学年
+            semester (Optional[str]): 学期，可选值为"一"(上学期)或"二"(下学期)，默认为当前学期
+            is_overseas (bool): 是否为境外生班级，默认为False
+            
         Returns:
             Dict[str, Any]: 包含班级课表信息的字典
+            
+        Raises:
+            Exception: 当API请求失败时捕获并返回错误信息
         """
         try:
             jwt_token = await self._get_jwt_token()
@@ -277,12 +337,17 @@ class SchoolInfoService:
     async def get_teacher_list(self, college_id: str) -> Dict[str, Any]:
         """
         获取教师列表
-
+        
+        查询指定学院的教师列表信息
+        
         Args:
-            college_id: 学院ID
-
+            college_id (str): 学院ID
+            
         Returns:
-            Dict[str, Any]: 包含教师列表信息的字典, data:[{"num": teacher_id, "name": teacher_name}]
+            Dict[str, Any]: 包含教师列表的字典，格式为data:[{"num": teacher_id, "name": teacher_name}]
+            
+        Raises:
+            Exception: 当API请求失败时捕获并返回错误信息
         """
         try:
             jwt_token = await self._get_jwt_token()
@@ -307,14 +372,19 @@ class SchoolInfoService:
     async def get_teacher_timetable(self, teacher_id: str, school_year: Optional[str] = None, semester: Optional[str] = None) -> Dict[str, Any]:
         """
         获取教师课表信息
-
+        
+        查询指定教师在特定学年学期的课程表信息
+        
         Args:
-            teacher_id: 教师ID
-            school_year: 学年, 例如: 2024-2025
-            semester: 上学期: 一, 下学期: 二
-
+            teacher_id (str): 教师ID
+            school_year (Optional[str]): 学年，格式如"2023-2024"，默认为当前学年
+            semester (Optional[str]): 学期，可选值为"一"(上学期)或"二"(下学期)，默认为当前学期
+            
         Returns:
             Dict[str, Any]: 包含教师课表信息的字典
+            
+        Raises:
+            Exception: 当API请求失败时捕获并返回错误信息
         """
         try:
             jwt_token = await self._get_jwt_token()
@@ -349,8 +419,13 @@ class SchoolInfoService:
         """
         获取课程列表
         
+        查询学校提供的所有课程列表
+        
         Returns:
             Dict[str, Any]: 包含课程列表的字典
+            
+        Raises:
+            Exception: 当API请求失败时捕获并返回错误信息
         """
         try:
             jwt_token = await self._get_jwt_token()
@@ -371,13 +446,18 @@ class SchoolInfoService:
         """
         获取课程课表信息
         
+        查询指定课程在特定学年学期的课表信息
+        
         Args:
-            course_name: 课程名称
-            school_year: 学年, 例如: 2024-2025
-            semester: 上学期: 一, 下学期: 二
+            course_name (str): 课程名称
+            school_year (Optional[str]): 学年，格式如"2023-2024"，默认为当前学年
+            semester (Optional[str]): 学期，可选值为"一"(上学期)或"二"(下学期)，默认为当前学期
             
         Returns:
             Dict[str, Any]: 包含课程课表信息的字典
+            
+        Raises:
+            Exception: 当API请求失败时捕获并返回错误信息
         """
         try:
             jwt_token = await self._get_jwt_token()
@@ -412,11 +492,16 @@ class SchoolInfoService:
         """
         获取建筑列表
         
+        查询指定校区的所有建筑列表
+        
         Args:
-            campus: 校区: 厦门校区, 泉州校区, 龙舟池校区
-
+            campus (Optional[str]): 校区名称，可选值为["厦门校区", "泉州校区", "龙舟池校区"]，默认为"厦门校区"
+            
         Returns:
             Dict[str, Any]: 包含建筑列表的字典
+            
+        Raises:
+            Exception: 当API请求失败时捕获并返回错误信息
         """
         try:
             jwt_token = await self._get_jwt_token()
@@ -439,12 +524,17 @@ class SchoolInfoService:
         """
         获取教室列表
         
+        查询指定校区和建筑的所有教室列表
+        
         Args:
-            campus: 校区: 厦门校区, 泉州校区, 龙舟池校区
-            build: 建筑名称
+            campus (Optional[str]): 校区名称，可选值为["厦门校区", "泉州校区", "龙舟池校区"]，默认为"厦门校区"
+            build (Optional[str]): 建筑名称，默认为None
             
         Returns:
             Dict[str, Any]: 包含教室列表的字典
+            
+        Raises:
+            Exception: 当API请求失败时捕获并返回错误信息
         """
         try:
             jwt_token = await self._get_jwt_token()
@@ -471,15 +561,20 @@ class SchoolInfoService:
         """
         获取教室课表信息
         
+        查询特定教室在指定学年学期的课表信息
+        
         Args:
-            school_year: 学年
-            semester: 学期
-            campus: 校区
-            build_name: 建筑名称
-            room_id: 教室ID
+            school_year (Optional[str]): 学年，格式如"2023-2024"，默认为当前学年
+            semester (Optional[str]): 学期，可选值为"一"(上学期)或"二"(下学期)，默认为当前学期
+            campus (Optional[str]): 校区名称，可选值为["厦门校区", "泉州校区", "龙舟池校区"]，默认为"厦门校区"
+            build_name (Optional[str]): 建筑名称，默认为None，需要从get_building_list()中获取
+            room_id (Optional[str]): 教室ID，默认为None，需要从get_classroom_list()中获取
             
         Returns:
             Dict[str, Any]: 包含教室课表信息的字典
+            
+        Raises:
+            Exception: 当API请求失败时捕获并返回错误信息
         """
         try:
             jwt_token = await self._get_jwt_token()

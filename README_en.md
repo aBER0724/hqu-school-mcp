@@ -39,15 +39,27 @@ This server implements several tools for accessing student data:
 1. Clone repository
 ```shell
 git clone https://github.com/aBER0724/hqu-school-mcp.git
-cd hqu-school-mcp-server
+cd hqu-school-mcp
 ```
 
-2. Create and configure environment variables
+2. Set up environment with uv
+```shell
+# Create and activate virtual environment
+uv venv .venv
+source .venv/bin/activate  # Linux/macOS
+# or
+.venv\Scripts\activate  # Windows
+
+# Install project
+uv pip install -e .
+```
+
+3. Create and configure environment variables
 ```shell
 cp .env.example .env
 ```
 
-1. Fill in [Sends Token](https://stuinfo-plus.sends.cc/#/setting) in `.env` file
+4. Fill in [Sends Token](https://stuinfo-plus.sends.cc/#/setting) in `.env` file
 ```
 SENDS_API_TOKEN=your_sends_api_token
 ```

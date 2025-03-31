@@ -41,12 +41,24 @@ git clone https://github.com/aBER0724/hqu-school-mcp.git
 cd hqu-school-mcp
 ```
 
-1. 创建并配置环境变量
+2. 使用uv创建并安装环境
+```shell
+# 安装依赖项
+uv venv .venv
+source .venv/bin/activate  # Linux/macOS
+# 或
+.venv\Scripts\activate  # Windows
+
+# 安装项目
+uv pip install -e .
+```
+
+3. 创建并配置环境变量
 ```shell
 cp .env.example .env
 ```
 
-1. 在`.env`文件中填入[其他设置 - 桑梓令牌](https://stuinfo-plus.sends.cc/#/setting)
+4. 在`.env`文件中填入 [其他设置 - 桑梓令牌](https://stuinfo-plus.sends.cc/#/setting)
 ```
 SENDS_API_TOKEN=your_sends_api_token
 ```
@@ -61,7 +73,7 @@ SENDS_API_TOKEN=your_sends_api_token
     "command": "uv",
     "args": [
       "--directory",
-      "your/path/hqu-school-mcp=",
+      "your/path/hqu-school-mcp",
       "run",
       "--with",
       "mcp",
@@ -79,5 +91,5 @@ SENDS_API_TOKEN=your_sends_api_token
 |---|---|
 |`get_teaching_week`|![教学周](img/TeachingWeek.png)|
 |`get_student_schedule`|![课表](img/Schedule.png)|
-|`get_empty_classroom_count` <bl /> `get_empty_classroom_status`|![课表](img/EmptyClassroom.png)|
-|`get_student_credit` <bl /> `get_student_grade`|![课表](img/CreditGrade.png)|
+|`get_empty_classroom_count` <br/> `get_empty_classroom_status`|![课表](img/EmptyClassroom.png)|
+|`get_student_credit` <br/> `get_student_grade`|![课表](img/CreditGrade.png)|
