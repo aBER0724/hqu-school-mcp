@@ -70,35 +70,35 @@ class StudentDataService:
         response.raise_for_status()
         return response.json()
 
-    async def get_credit(self) -> Dict[str, Any]:
-        """获取学生学分数据"""
-        headers = self._get_headers()
-        response = await self.client.get(
-            f"{self.api_url}/service/school/credit",
-            headers=headers
-        )
-        response.raise_for_status()
-        return response.json()
+    # async def get_credit(self) -> Dict[str, Any]:
+    #     """获取学生学分数据"""
+    #     headers = self._get_headers()
+    #     response = await self.client.get(
+    #         f"{self.api_url}/service/school/credit",
+    #         headers=headers
+    #     )
+    #     response.raise_for_status()
+    #     return response.json()
 
-    async def get_gpa(self) -> Dict[str, Any]:
-        """获取学生GPA数据"""
-        headers = self._get_headers()
-        response = await self.client.get(
-            f"{self.api_url}/service/school/gpa",
-            headers=headers
-        )
-        response.raise_for_status()
-        return response.json()
+    # async def get_gpa(self) -> Dict[str, Any]:
+    #     """获取学生GPA数据"""
+    #     headers = self._get_headers()
+    #     response = await self.client.get(
+    #         f"{self.api_url}/service/school/gpa",
+    #         headers=headers
+    #     )
+    #     response.raise_for_status()
+    #     return response.json()
 
-    async def get_grade(self) -> Dict[str, Any]:
-        """获取学生成绩数据"""
-        headers = self._get_headers()
-        response = await self.client.get(
-            f"{self.api_url}/service/school/grade",
-            headers=headers
-        )
-        response.raise_for_status()
-        return response.json()
+    # async def get_grade(self) -> Dict[str, Any]:
+    #     """获取学生成绩数据"""
+    #     headers = self._get_headers()
+    #     response = await self.client.get(
+    #         f"{self.api_url}/service/school/grade",
+    #         headers=headers
+    #     )
+    #     response.raise_for_status()
+    #     return response.json()
 
 
 # Create a singleton instance

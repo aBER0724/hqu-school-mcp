@@ -111,7 +111,7 @@ class SchoolInfoService:
         
         return self._jwt_token
 
-    def _get_headers(self, extra_headers: Optional[Dict[str, str]] = None) -> Dict[str, str]:
+    async def _get_headers(self, extra_headers: Optional[Dict[str, str]] = None) -> Dict[str, str]:
         """
         获取请求头
         
@@ -128,15 +128,14 @@ class SchoolInfoService:
             "Accept": "application/json;charset=utf-8"
         }
         
-        if self._jwt_token:
-            headers["Authorization"] = self._jwt_token
+        headers["Authorization"] = await self._get_jwt_token()
         
         if extra_headers:
             headers.update(extra_headers)
             
         return headers
 
-    async def get_empty_classroom_count(self, campus: str = "0002") -> Dict[str, Any]:
+    async def get_empty_classroom_count(self, campus: str) -> Dict[str, Any]:
         """
         获取空教室统计信息
         
@@ -158,7 +157,7 @@ class SchoolInfoService:
         }
 
         try:
-            headers = self._get_headers()
+            headers = await self._get_headers()
             response = await self.client.get(url, params=params, headers=headers)
             response.raise_for_status()
             return response.json()
@@ -169,7 +168,7 @@ class SchoolInfoService:
                 "data": None
             }
 
-    async def get_empty_classroom_status(self, build_id: str, day: Optional[str] = None, campus: str = "0002") -> Dict[str, Any]:
+    async def get_empty_classroom_status(self, build_id: str, day: str, campus: str) -> Dict[str, Any]:
         """
         获取教室详细信息
         
@@ -201,7 +200,7 @@ class SchoolInfoService:
             params["day"] = today
 
         try:
-            headers = self._get_headers()
+            headers = await self._get_headers()
             response = await self.client.get(url, params=params, headers=headers)
             response.raise_for_status()
             return response.json()
@@ -239,7 +238,7 @@ class SchoolInfoService:
                 
             url = f"{self.BASE_URL}/academic/score/account"
 
-            headers = self._get_headers()
+            headers = await self._get_headers()
 
             params = {
                 "account": STUDENT_ID,
@@ -272,7 +271,7 @@ class SchoolInfoService:
         try:
             jwt_token = await self._get_jwt_token()
             url = f"{self.BASE_URL}/academic/schedule/college"
-            headers = self._get_headers()
+            headers = await self._get_headers()
 
             response = await self.client.get(url, headers=headers)
             response.raise_for_status()
@@ -316,12 +315,13 @@ class SchoolInfoService:
                 
             url = f"{self.BASE_URL}/academic/schedule/classTimetable"
 
-            headers = self._get_headers({"timetableType": "班级课表查询"})
+            headers = await self._get_headers()
 
             params = {
                 "KKXN": school_year,  # 学年
                 "KKXQ": semester,     # 学期
-                "ZYBJDM": class_id     # 专业班级代码
+                "ZYBJDM": class_id,     # 专业班级代码
+                "timetableType": "班级课表查询"
             }
 
             response = await self.client.get(url, headers=headers, params=params)
@@ -352,7 +352,7 @@ class SchoolInfoService:
         try:
             jwt_token = await self._get_jwt_token()
             url = f"{self.BASE_URL}/academic/schedule/teachers"
-            headers = self._get_headers()
+            headers = await self._get_headers()
 
             params = {
                 "XYDM": college_id,
@@ -397,12 +397,13 @@ class SchoolInfoService:
                 
             url = f"{self.BASE_URL}/academic/schedule/teacherTimetable"
 
-            headers = self._get_headers({"timetableType": "教师课表查询"})
+            headers = await self._get_headers()
 
             params = {
                 "KKXN": school_year,  # 学年
                 "KKXQ": semester,     # 学期
-                "id": teacher_id       # 教师ID
+                "ZYBJDM": teacher_id,       # 教师ID
+                "timetableType": "教师课表查询"
             }
             
             response = await self.client.get(url, headers=headers, params=params)
@@ -430,7 +431,7 @@ class SchoolInfoService:
         try:
             jwt_token = await self._get_jwt_token()
             url = f"{self.BASE_URL}/academic/schedule/courseNames"
-            headers = self._get_headers()
+            headers = await self._get_headers()
             
             response = await self.client.get(url, headers=headers)
             response.raise_for_status()
@@ -470,11 +471,11 @@ class SchoolInfoService:
                 
             url = f"{self.BASE_URL}/academic/schedule/selectCourse"
             
-            headers = self._get_headers()
+            headers = await self._get_headers()
             
             params = {
                 "year": school_year,
-                "semester": semester,
+                "term": semester,
                 "courseName": course_name
             }
             
@@ -488,7 +489,7 @@ class SchoolInfoService:
                 "data": None
             }
     
-    async def get_building_list(self, campus: Optional[str] = "厦门校区") -> Dict[str, Any]:
+    async def get_building_list(self, campus: str) -> Dict[str, Any]:
         """
         获取建筑列表
         
@@ -506,7 +507,7 @@ class SchoolInfoService:
         try:
             jwt_token = await self._get_jwt_token()
             url = f"{self.BASE_URL}/academic/schedule/buildByCampus"
-            headers = self._get_headers()
+            headers = await self._get_headers()
             
             params = {"campus": campus}
 
@@ -520,15 +521,15 @@ class SchoolInfoService:
                 "data": None
             }
     
-    async def get_classroom_list(self, campus: Optional[str] = "厦门校区", build: Optional[str] = None) -> Dict[str, Any]:
+    async def get_classroom_list(self, campus: str, build: str) -> Dict[str, Any]:
         """
         获取教室列表
         
         查询指定校区和建筑的所有教室列表
         
         Args:
+            build (str): 建筑名称
             campus (Optional[str]): 校区名称，可选值为["厦门校区", "泉州校区", "龙舟池校区"]，默认为"厦门校区"
-            build (Optional[str]): 建筑名称，默认为None
             
         Returns:
             Dict[str, Any]: 包含教室列表的字典
@@ -539,13 +540,13 @@ class SchoolInfoService:
         try:
             jwt_token = await self._get_jwt_token()
             url = f"{self.BASE_URL}/academic/schedule/roomsByCampus"
-            headers = self._get_headers()
+            headers = await self._get_headers()
             
             params = {
                 "campus": campus,
                 "build": build
             }
-
+            
             response = await self.client.get(url, headers=headers, params=params)
             response.raise_for_status()
             return response.json()
@@ -557,7 +558,7 @@ class SchoolInfoService:
             }
     
     
-    async def get_rooms_timetable(self, school_year: Optional[str] = None, semester: Optional[str] = None, campus: Optional[str] = "厦门校区", build_name: Optional[str] = None, room_id: Optional[str] = None) -> Dict[str, Any]:
+    async def get_rooms_timetable(self, campus: str, build_name: str, room_id: str, school_year: Optional[str] = None, semester: Optional[str] = None) -> Dict[str, Any]:
         """
         获取教室课表信息
         
@@ -587,16 +588,16 @@ class SchoolInfoService:
                 
             url = f"{self.BASE_URL}/academic/schedule/roomsTimetable"
             
-            headers = self._get_headers()
+            headers = await self._get_headers()
             
             params = {
                 "KKXN": school_year,  # 学年
                 "KKXQ": semester,     # 学期
                 "campus": campus,      # 校区
                 "build": build_name,   # 建筑名称
-                "room": room_id        # 教室ID
+                "room": room_id,        # 教室ID
             }
-            
+
             response = await self.client.get(url, headers=headers, params=params)
             response.raise_for_status()
             return response.json()

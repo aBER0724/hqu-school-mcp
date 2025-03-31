@@ -1,5 +1,5 @@
 from mcp.server.fastmcp import FastMCP, Context
-# from hqu_school_mcp.sends import student_data_service
+from hqu_school_mcp.sends import student_data_service
 from hqu_school_mcp.school import school_info_service
 import sys
 from typing import Optional, List
@@ -18,9 +18,14 @@ mcp = FastMCP(
 
 
 @mcp.tool()
-async def health_check(ctx: Context) -> str:
+async def health_check(
+    ctx: Context,
+) -> str:
     """
     健康检查端点，用于验证服务是否正常运行
+
+    Args:
+        ctx (Context): MCP上下文对象
 
     Returns:
         str: 服务状态信息
@@ -28,61 +33,37 @@ async def health_check(ctx: Context) -> str:
     return "MCP Scholar服务运行正常"
 
 
-# @mcp.tool()
-# async def get_student_schedule(ctx: Context, semester: Optional[str] = None) -> dict:
-#     """
-#     获取学生课表数据
+@mcp.tool()
+async def get_student_schedule(
+    ctx: Context,
+    semester: Optional[str] = None,
+) -> dict:
+    """
+    获取学生课表数据
 
-#     Args:
-#         ctx: MCP上下文
-#         semester: 学期
+    Args:
+        ctx (Context): MCP上下文对象
+        semester (Optional[str], optional): 学期. Defaults to None.
 
-#     Returns:
-#         dict: 课表数据
-#     """
-#     data = await student_data_service.get_schedule(semester)
-#     return data
-
-
-# @mcp.tool()
-# async def get_student_credit(ctx: Context) -> dict:
-#     """
-#     获取学生学分数据
-
-#     Args:
-#         ctx: MCP上下文
-
-#     Returns:
-#         dict: 学分数据
-#     """
-#     data = await student_data_service.get_credit()
-#     return data
-
-
-# @mcp.tool()
-# async def get_student_gpa(ctx: Context) -> dict:
-#     """
-#     获取学生GPA数据
-
-#     Args:
-#         ctx: MCP上下文
-
-#     Returns:
-#         dict: GPA数据
-#     """
-#     data = await student_data_service.get_gpa()
-#     return data
-
+    Returns:
+        dict: 课表数据
+    """
+    data = await student_data_service.get_schedule(semester)
+    return data
 
 @mcp.tool()
-async def get_student_grade(ctx: Context, school_year: Optional[str] = None, semester: Optional[str] = None) -> dict:
+async def get_student_grade(
+    ctx: Context,
+    school_year: Optional[str] = None,
+    semester: Optional[str] = None,
+) -> dict:
     """
     获取学生成绩数据
 
     Args:
-        ctx: MCP上下文
-        school_year: 学年，可选，默认为当前学年, 2024-2025
-        semester: 学期，可选，默认为当前学期, 一 或 二
+        ctx (Context): MCP上下文对象
+        school_year (Optional[str], optional): 学年，默认为当前学年, 例如: 2024-2025. Defaults to None.
+        semester (Optional[str], optional): 学期，默认为当前学期, 一 或 二. Defaults to None.
 
     Returns:
         dict: 成绩数据
@@ -95,15 +76,17 @@ async def get_student_grade(ctx: Context, school_year: Optional[str] = None, sem
 
 
 @mcp.tool()
-async def get_teaching_week(ctx: Context) -> dict:
+async def get_teaching_week(
+    ctx: Context,
+) -> dict:
     """
     获取当前教学周，通过调用学校API获取
 
     Args:
-        ctx: MCP上下文
+        ctx (Context): MCP上下文对象
 
     Returns:
-        dict: 当前教学周信息
+        dict: 当前教学周信息，包含success状态、week_number周数和date日期
     """
     try:
         # 调用学校API获取教学周信息
@@ -137,15 +120,20 @@ async def get_teaching_week(ctx: Context) -> dict:
 
 
 @mcp.tool()
-async def get_empty_classroom_status(ctx: Context, build_id: str, day: Optional[str] = None, campus: Optional[str] = "0002") -> dict:
+async def get_empty_classroom_status(
+    ctx: Context,
+    build_id: str,
+    day: str,
+    campus: str,
+) -> dict:
     """
     获取教室详细信息，包括各时段的使用状态
     
     Args:
-        ctx: MCP上下文
-        build_id: 建筑ID，必填，例如"0002011"代表C4楼
-        day: 日期，可选，格式为"yyyy-MM-dd"，默认为当天
-        campus: 校区代码(0001: 泉州校区, 0002: 厦门校区, 0003: 龙舟池校区)，默认为厦门校区
+        ctx (Context): MCP上下文对象
+        build_id (str): 建筑ID，必填，例如"0002011"代表C4楼
+        day (Optional[str], optional): 日期，格式为"yyyy-MM-dd"，默认为当天. Defaults to None.
+        campus (str, optional): 校区代码(0001: 泉州校区, 0002: 厦门校区, 0003: 龙舟池校区). Defaults to "0002".
         
     Returns:
         dict: 教室详情数据
@@ -158,13 +146,16 @@ async def get_empty_classroom_status(ctx: Context, build_id: str, day: Optional[
     
 
 @mcp.tool()
-async def get_empty_classroom_count(ctx: Context, campus: Optional[str] = "0002") -> dict:
+async def get_empty_classroom_count(
+    ctx: Context,
+    campus: str,
+) -> dict:
     """
     获取空教室统计信息
     
     Args:
-        ctx: MCP上下文
-        campus: 校区代码(0001: 泉州校区, 0002: 厦门校区, 0003: 龙舟池校区)，默认为厦门校区
+        ctx (Context): MCP上下文对象
+        campus (Optional[str], optional): 校区代码(0001: 泉州校区, 0002: 厦门校区, 0003: 龙舟池校区). Defaults to "0002".
         
     Returns:
         dict: 空教室统计数据
@@ -177,30 +168,34 @@ async def get_empty_classroom_count(ctx: Context, campus: Optional[str] = "0002"
 
 
 @mcp.tool()
-async def get_wechat_jwt(ctx: Context) -> dict:
+async def get_jwt_token(
+    ctx: Context,
+) -> dict:
     """
     获取微信认证的JWT令牌
     
     Args:
-        ctx: MCP上下文
+        ctx (Context): MCP上下文对象
         
     Returns:
         dict: 包含JWT令牌的字典
     """
     try:
-        data = await school_info_service.get_wechat_jwt()
+        data = await school_info_service._get_jwt_token()
         return data
     except Exception as e:
         return {"error": str(e)}
 
 
 @mcp.tool()
-async def get_college_list(ctx: Context) -> dict:
+async def get_college_list(
+    ctx: Context,
+) -> dict:
     """
     获取学院列表
     
     Args:
-        ctx: MCP上下文
+        ctx (Context): MCP上下文对象
         
     Returns:
         dict: 包含学院列表的字典
@@ -213,16 +208,22 @@ async def get_college_list(ctx: Context) -> dict:
 
 
 @mcp.tool()
-async def get_class_timetable(ctx: Context, class_id: str, school_year: Optional[str] = None, semester: Optional[str] = None, is_overseas: Optional[bool] = False) -> dict:
+async def get_class_timetable(
+    ctx: Context,
+    class_id: str,
+    school_year: Optional[str] = None,
+    semester: Optional[str] = None,
+    is_overseas: bool = False,
+) -> dict:
     """
     获取班级课表信息
     
     Args:
-        ctx: MCP上下文
-        class_id: 班级ID
-        school_year: 学年, 例如: 2024-2025
-        semester: 上学期: 一, 下学期: 二
-        is_overseas: 是否是境外生班级
+        ctx (Context): MCP上下文对象
+        class_id (str): 班级ID
+        school_year (Optional[str], optional): 学年, 例如: 2024-2025. Defaults to None.
+        semester (Optional[str], optional): 上学期: 一, 下学期: 二. Defaults to None.
+        is_overseas (bool, optional): 是否是境外生班级. Defaults to False.
         
     Returns:
         dict: 包含班级课表信息的字典
@@ -235,13 +236,16 @@ async def get_class_timetable(ctx: Context, class_id: str, school_year: Optional
 
 
 @mcp.tool()
-async def get_teacher_list(ctx: Context, college_id: str) -> dict:
+async def get_teacher_list(
+    ctx: Context,
+    college_id: str,
+) -> dict:
     """
     获取教师列表
     
     Args:
-        ctx: MCP上下文
-        college_id: 学院ID
+        ctx (Context): MCP上下文对象
+        college_id (str): 学院ID
         
     Returns:
         dict: 包含教师列表的字典
@@ -252,17 +256,21 @@ async def get_teacher_list(ctx: Context, college_id: str) -> dict:
     except Exception as e:
         return {"error": str(e)}
 
-
 @mcp.tool()
-async def get_teacher_timetable(ctx: Context, teacher_id: str, school_year: Optional[str] = None, semester: Optional[str] = None) -> dict:
+async def get_teacher_timetable(
+    ctx: Context,
+    teacher_id: str,
+    school_year: Optional[str] = None,
+    semester: Optional[str] = None,
+) -> dict:
     """
     获取教师课表信息
     
     Args:
-        ctx: MCP上下文
-        teacher_id: 教师ID
-        school_year: 学年, 例如: 2024-2025
-        semester: 上学期: 一, 下学期: 二
+        ctx (Context): MCP上下文对象
+        teacher_id (str): 教师ID
+        school_year (Optional[str], optional): 学年, 例如: 2024-2025. Defaults to None.
+        semester (Optional[str], optional): 上学期: 一, 下学期: 二. Defaults to None.
         
     Returns:
         dict: 包含教师课表信息的字典
@@ -275,12 +283,14 @@ async def get_teacher_timetable(ctx: Context, teacher_id: str, school_year: Opti
 
 
 @mcp.tool()
-async def get_course_list(ctx: Context) -> dict:
+async def get_course_list(
+    ctx: Context,
+) -> dict:
     """
     获取课程列表
     
     Args:
-        ctx: MCP上下文
+        ctx (Context): MCP上下文对象
         
     Returns:
         dict: 包含课程列表的字典
@@ -293,15 +303,20 @@ async def get_course_list(ctx: Context) -> dict:
 
 
 @mcp.tool()
-async def get_course_timetable(ctx: Context, course_name: str, school_year: Optional[str] = None, semester: Optional[str] = None) -> dict:
+async def get_course_timetable(
+    ctx: Context,
+    course_name: str,
+    school_year: Optional[str] = None,
+    semester: Optional[str] = None,
+) -> dict:
     """
     获取课程课表信息
     
     Args:
-        ctx: MCP上下文
-        course_name: 课程名称
-        school_year: 学年, 例如: 2024-2025
-        semester: 上学期: 一, 下学期: 二
+        ctx (Context): MCP上下文对象
+        course_name (str): 课程名称
+        school_year (Optional[str], optional): 学年, 例如: 2024-2025. Defaults to None.
+        semester (Optional[str], optional): 上学期: 一, 下学期: 二. Defaults to None.
         
     Returns:
         dict: 包含课程课表信息的字典
@@ -314,17 +329,24 @@ async def get_course_timetable(ctx: Context, course_name: str, school_year: Opti
 
 
 @mcp.tool()
-async def get_rooms_timetable(ctx: Context, school_year: Optional[str] = None, semester: Optional[str] = None, campus: Optional[str] = "厦门校区", build_name: Optional[str] = None, room_id: Optional[str] = None) -> dict:
+async def get_rooms_timetable(
+    ctx: Context,
+    campus: str,
+    build_name: str,
+    room_id: str,
+    school_year: Optional[str] = None,
+    semester: Optional[str] = None,
+) -> dict:
     """
     获取教室课表信息
     
     Args:
-        ctx: MCP上下文
-        school_year: 学年
-        semester: 学期
-        campus: 校区, 默认为厦门校区
-        build_name: 建筑名称, 需要从 get_building_list() 中获取
-        room_id: 教室ID, 需要从 get_classroom_list() 中获取
+        ctx (Context): MCP上下文对象
+        school_year (Optional[str], optional): 学年. Defaults to None.
+        semester (Optional[str], optional): 学期. Defaults to None.
+        campus (Optional[str], optional): 校区. Defaults to "厦门校区".
+        build_name (Optional[str], optional): 建筑名称, 需要从 get_building_list() 中获取. Defaults to None.
+        room_id (Optional[str], optional): 教室ID, 需要从 get_classroom_list() 中获取. Defaults to None.
         
     Returns:
         dict: 包含教室课表信息的字典
@@ -337,13 +359,16 @@ async def get_rooms_timetable(ctx: Context, school_year: Optional[str] = None, s
 
 
 @mcp.tool()
-async def get_building_list(ctx: Context, campus: Optional[str] = "厦门校区") -> dict:
+async def get_building_list(
+    ctx: Context,
+    campus: str,
+) -> dict:
     """
     获取建筑列表
     
     Args:
-        ctx: MCP上下文
-        campus: 校区: 厦门校区, 泉州校区, 龙舟池校区
+        ctx (Context): MCP上下文对象
+        campus (Optional[str], optional): 校区: 厦门校区, 泉州校区, 龙舟池校区. Defaults to "厦门校区".
         
     Returns:
         dict: 包含建筑列表的字典
@@ -356,14 +381,18 @@ async def get_building_list(ctx: Context, campus: Optional[str] = "厦门校区"
 
 
 @mcp.tool()
-async def get_classroom_list(ctx: Context, campus: Optional[str] = "厦门校区", build: Optional[str] = None) -> dict:
+async def get_classroom_list(
+    ctx: Context,
+    campus:str,
+    build:str,
+) -> dict:
     """
     获取教室列表
     
     Args:
-        ctx: MCP上下文
-        campus: 校区: 厦门校区, 泉州校区, 龙舟池校区
-        build: 建筑名称
+        ctx (Context): MCP上下文对象
+        campus (Optional[str], optional): 校区: 厦门校区, 泉州校区, 龙舟池校区. Defaults to "厦门校区".
+        build (Optional[str], optional): 建筑名称. Defaults to None.
         
     Returns:
         dict: 包含教室列表的字典
@@ -378,6 +407,9 @@ async def get_classroom_list(ctx: Context, campus: Optional[str] = "厦门校区
 def cli_main():
     """
     CLI入口点，使用STDIO交互
+    
+    Returns:
+        None
     """
     print("MCP Scholar STDIO服务准备启动...", file=sys.stderr)
 
@@ -393,6 +425,9 @@ def cli_main():
 def server_main():
     """
     服务入口点函数，使用WebSocket交互
+    
+    Returns:
+        None
     """
     try:
         # 启动WebSocket服务器
@@ -404,6 +439,9 @@ def server_main():
 async def client_test():
     """
     测试客户端连接和API调用的函数
+    
+    Returns:
+        None
     """
     # 使用WebSocket连接到您的服务器
     async with websocket_client("ws://localhost:8765") as client:
