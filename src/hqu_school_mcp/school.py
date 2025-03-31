@@ -77,11 +77,27 @@ class SchoolInfoService:
 
         return (school_year, semester_num)
 
+    async def _is_token_expired(self, response: httpx.Response) -> bool:
+        """
+        检查响应是否表示令牌过期
+        
+        Args:
+            response (httpx.Response): HTTP响应对象
+            
+        Returns:
+            bool: 如果响应表示令牌过期则返回True，否则返回False
+        """
+        try:
+            data = response.json()
+            return data.get("code") == "9999" and "token" in data.get("msg", "").lower()
+        except:
+            return False
+
     async def _get_jwt_token(self, refresh: bool = False) -> str:
         """
         获取或刷新JWT令牌
         
-        通过微信OpenID获取访问学校API所需的JWT令牌
+        通过微信OpenID获取访问学校API所需的JWT令牌。如果令牌过期，会自动刷新。
         
         Args:
             refresh (bool): 是否强制刷新令牌，默认为False
@@ -135,6 +151,32 @@ class SchoolInfoService:
             
         return headers
 
+    async def _make_request(self, method: str, url: str, **kwargs) -> httpx.Response:
+        """
+        发送HTTP请求，自动处理令牌过期情况
+        
+        Args:
+            method (str): HTTP方法
+            url (str): 请求URL
+            **kwargs: 传递给httpx的额外参数
+            
+        Returns:
+            httpx.Response: HTTP响应对象
+        """
+        max_retries = 2
+        for attempt in range(max_retries):
+            try:
+                response = await self.client.request(method, url, **kwargs)
+                response.raise_for_status()
+                return response
+            except httpx.HTTPStatusError as e:
+                if attempt == 0 and await self._is_token_expired(e.response):
+                    # 如果是令牌过期，刷新令牌并重试
+                    self._jwt_token = None
+                    kwargs["headers"] = await self._get_headers(kwargs.get("headers"))
+                    continue
+                raise
+
     async def get_empty_classroom_count(self, campus: str) -> Dict[str, Any]:
         """
         获取空教室统计信息
@@ -158,8 +200,7 @@ class SchoolInfoService:
 
         try:
             headers = await self._get_headers()
-            response = await self.client.get(url, params=params, headers=headers)
-            response.raise_for_status()
+            response = await self._make_request("GET", url, params=params, headers=headers)
             return response.json()
         except Exception as e:
             return {
@@ -201,8 +242,7 @@ class SchoolInfoService:
 
         try:
             headers = await self._get_headers()
-            response = await self.client.get(url, params=params, headers=headers)
-            response.raise_for_status()
+            response = await self._make_request("GET", url, params=params, headers=headers)
             return response.json()
         except Exception as e:
             return {
@@ -228,8 +268,6 @@ class SchoolInfoService:
             Exception: 当API请求失败时捕获并返回错误信息
         """
         try:
-            jwt_token = await self._get_jwt_token()
-            
             if school_year is None:
                 school_year = self.current_school_year
 
@@ -246,8 +284,7 @@ class SchoolInfoService:
                 "semester": semester
             }
 
-            response = await self.client.get(url, headers=headers, params=params)
-            response.raise_for_status()
+            response = await self._make_request("GET", url, headers=headers, params=params)
             return response.json()
         except Exception as e:
             return {
@@ -269,12 +306,10 @@ class SchoolInfoService:
             Exception: 当API请求失败时捕获并返回错误信息
         """
         try:
-            jwt_token = await self._get_jwt_token()
             url = f"{self.BASE_URL}/academic/schedule/college"
             headers = await self._get_headers()
 
-            response = await self.client.get(url, headers=headers)
-            response.raise_for_status()
+            response = await self._make_request("GET", url, headers=headers)
             return response.json()
         except Exception as e:
             return {
@@ -302,8 +337,6 @@ class SchoolInfoService:
             Exception: 当API请求失败时捕获并返回错误信息
         """
         try:
-            jwt_token = await self._get_jwt_token()
-            
             if school_year is None:
                 school_year = self.current_school_year
 
@@ -324,8 +357,7 @@ class SchoolInfoService:
                 "timetableType": "班级课表查询"
             }
 
-            response = await self.client.get(url, headers=headers, params=params)
-            response.raise_for_status()
+            response = await self._make_request("GET", url, headers=headers, params=params)
             return response.json()
         except Exception as e:
             return {
@@ -350,7 +382,6 @@ class SchoolInfoService:
             Exception: 当API请求失败时捕获并返回错误信息
         """
         try:
-            jwt_token = await self._get_jwt_token()
             url = f"{self.BASE_URL}/academic/schedule/teachers"
             headers = await self._get_headers()
 
@@ -359,8 +390,7 @@ class SchoolInfoService:
                 "Type": "weimeng-sends"
             }
 
-            response = await self.client.get(url, headers=headers, params=params)
-            response.raise_for_status()
+            response = await self._make_request("GET", url, headers=headers, params=params)
             return response.json()
         except Exception as e:
             return {
@@ -387,8 +417,6 @@ class SchoolInfoService:
             Exception: 当API请求失败时捕获并返回错误信息
         """
         try:
-            jwt_token = await self._get_jwt_token()
-            
             if school_year is None:
                 school_year = self.current_school_year
 
@@ -406,8 +434,7 @@ class SchoolInfoService:
                 "timetableType": "教师课表查询"
             }
             
-            response = await self.client.get(url, headers=headers, params=params)
-            response.raise_for_status()
+            response = await self._make_request("GET", url, headers=headers, params=params)
             return response.json()
         except Exception as e:
             return {
@@ -429,12 +456,10 @@ class SchoolInfoService:
             Exception: 当API请求失败时捕获并返回错误信息
         """
         try:
-            jwt_token = await self._get_jwt_token()
             url = f"{self.BASE_URL}/academic/schedule/courseNames"
             headers = await self._get_headers()
             
-            response = await self.client.get(url, headers=headers)
-            response.raise_for_status()
+            response = await self._make_request("GET", url, headers=headers)
             return response.json()
         except Exception as e:
             return {
@@ -461,8 +486,6 @@ class SchoolInfoService:
             Exception: 当API请求失败时捕获并返回错误信息
         """
         try:
-            jwt_token = await self._get_jwt_token()
-            
             if school_year is None:
                 school_year = self.current_school_year
 
@@ -479,8 +502,7 @@ class SchoolInfoService:
                 "courseName": course_name
             }
             
-            response = await self.client.get(url, headers=headers, params=params)
-            response.raise_for_status()
+            response = await self._make_request("GET", url, headers=headers, params=params)
             return response.json()
         except Exception as e:
             return {
@@ -505,14 +527,12 @@ class SchoolInfoService:
             Exception: 当API请求失败时捕获并返回错误信息
         """
         try:
-            jwt_token = await self._get_jwt_token()
             url = f"{self.BASE_URL}/academic/schedule/buildByCampus"
             headers = await self._get_headers()
             
             params = {"campus": campus}
 
-            response = await self.client.get(url, headers=headers, params=params)
-            response.raise_for_status()
+            response = await self._make_request("GET", url, headers=headers, params=params)
             return response.json()
         except Exception as e:
             return {
@@ -538,7 +558,6 @@ class SchoolInfoService:
             Exception: 当API请求失败时捕获并返回错误信息
         """
         try:
-            jwt_token = await self._get_jwt_token()
             url = f"{self.BASE_URL}/academic/schedule/roomsByCampus"
             headers = await self._get_headers()
             
@@ -547,8 +566,7 @@ class SchoolInfoService:
                 "build": build
             }
             
-            response = await self.client.get(url, headers=headers, params=params)
-            response.raise_for_status()
+            response = await self._make_request("GET", url, headers=headers, params=params)
             return response.json()
         except Exception as e:
             return {
@@ -578,8 +596,6 @@ class SchoolInfoService:
             Exception: 当API请求失败时捕获并返回错误信息
         """
         try:
-            jwt_token = await self._get_jwt_token()
-            
             if school_year is None:
                 school_year = self.current_school_year
 
@@ -598,8 +614,7 @@ class SchoolInfoService:
                 "room": room_id,        # 教室ID
             }
 
-            response = await self.client.get(url, headers=headers, params=params)
-            response.raise_for_status()
+            response = await self._make_request("GET", url, headers=headers, params=params)
             return response.json()
         except Exception as e:
             return {
