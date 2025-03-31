@@ -9,3 +9,5 @@ wheels/
 # Virtual environments
 .venv
 .env
+
+src/hqu_school_mcp/sends.py
