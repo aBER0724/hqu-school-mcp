@@ -60,19 +60,6 @@ This server implements several tools for accessing student data:
   - Required "campus" parameter (e.g. "Xiamen Campus")
   - Required "build" parameter representing the building name
 
-## Input Schema
-
-All MCP tools provide standard Input Schemas that can be generated and viewed using:
-
-```shell
-# Generate Input Schema files
-python generate_schemas.py
-```
-
-After generation, you can view all tool Input Schema details in `schemas/schema_viewer.html`:
-
-![Schema Viewer](img/schema_viewer.png)
-
 ## Quick Start
 
 1. Clone repository
