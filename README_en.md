@@ -49,15 +49,15 @@ This server implements several tools for accessing student data:
   - Optional "semester" parameter ("一" for first semester, "二" for second semester)
   - Optional "is_overseas" parameter indicating whether it's a class for overseas students (defaults to false)
 - `get_rooms_timetable`: Get classroom timetable information
-  - Required "campus" parameter (e.g. "Xiamen Campus")
+  - Required "campus" parameter (e.g. "厦门校区")
   - Required "build_name" parameter (must be obtained from get_building_list)
   - Required "room_id" parameter (must be obtained from get_classroom_list)
   - Optional "school_year" parameter (e.g. "2024-2025")
   - Optional "semester" parameter ("一" for first semester, "二" for second semester)
 - `get_building_list`: Get list of buildings
-  - Required "campus" parameter (e.g. "Xiamen Campus", "Quanzhou Campus", "Longzhouchi Campus")
+  - Required "campus" parameter (e.g. "厦门校区", "泉州校区", "龙舟池校区")
 - `get_classroom_list`: Get list of classrooms
-  - Required "campus" parameter (e.g. "Xiamen Campus")
+  - Required "campus" parameter (e.g. "厦门校区")
   - Required "build" parameter representing the building name
 
 ## Quick Start
